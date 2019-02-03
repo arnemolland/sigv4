@@ -1,0 +1,10 @@
+name: sigv4
+description: Library for signing AWS requests with Signature Version 4
+author: arnemolland <arneolaim@gmail.com>
+
+version: 0.0.1
+
+environment:
+  sdk: '>=2.0.0 <3.0.0'
+
+dependencies:

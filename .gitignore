@@ -1,0 +1,32 @@
+# misc
+*.class
+*.lock
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+
+# vscode
+.vscode/
+
+# env
+.env
+
+# intellij
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# dart/pub
+**/doc/api/
+.dart_tool/
+.flutter-plugins
+.packages
+.pub-cache/
+.pub/
+build/
