@@ -1,90 +1,260 @@
-import 'dart:io';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart';
-import 'package:meta/meta.dart';
-import 'package:intl/intl.dart';
-import 'dart:convert' show utf8;
-import 'package:convert/convert.dart' show hex;
+import 'package:convert/convert.dart';
+
+const _aws_sha_256 = 'AWS4-HMAC-SHA256';
+const _aws4_request = 'aws4_request';
+const _aws4 = 'AWS4';
+const _x_amz_date = 'x-amz-date';
+const _x_amz_security_token = 'x-amz-security-token';
+const _host = 'host';
+const _authorization = 'Authorization';
+const _default_content_type = 'application/json';
+const _default_accept_type = 'application/json';
+
+class Sigv4Client {
+  String endpoint;
+  String pathComponent;
+  String region;
+  String accessKey;
+  String secretKey;
+  String sessionToken;
+  String serviceName;
+  String defaultContentType;
+  String defaultAcceptType;
+  Sigv4Client(this.accessKey, this.secretKey, String endpoint,
+      {this.serviceName = 'execute-api',
+      this.region = 'eu-west-1',
+      this.sessionToken,
+      this.defaultContentType = _default_content_type,
+      this.defaultAcceptType = _default_accept_type}) {
+    final parsedUri = Uri.parse(endpoint);
+    this.endpoint = '${parsedUri.scheme}://${parsedUri.host}';
+    this.pathComponent = parsedUri.path;
+  }
+}
+
+class Sigv4Request {
+  String method;
+  String path;
+  Map<String, String> queryParams;
+  Map<String, String> headers;
+  String url;
+  String body;
+  Sigv4Client sigv4Client;
+  String canonicalRequest;
+  String hashedCanonicalRequest;
+  String credentialScope;
+  String stringToSign;
+  String datetime;
+  List<int> signingKey;
+  String signature;
+  Sigv4Request(
+    this.sigv4Client, {
+    String method,
+    String path,
+    this.datetime,
+    this.queryParams,
+    this.headers,
+    dynamic body,
+  }) {
+    this.method = method.toUpperCase();
+    this.path = '${sigv4Client.pathComponent}$path';
+    if (headers == null) {
+      headers = {};
+    }
+    if (headers['Content-Type'] == null) {
+      headers['Content-Type'] = sigv4Client.defaultContentType;
+    }
+    if (headers['Accept'] == null) {
+      headers['Accept'] = sigv4Client.defaultAcceptType;
+    }
+    if (body == null || this.method == 'GET') {
+      this.body = '';
+    } else {
+      this.body = json.encode(body);
+    }
+    if (body == '') {
+      headers.remove('Content-Type');
+    }
+    if (datetime == null) {
+      datetime = Sigv4.generateDatetime();
+    }
+    headers[_x_amz_date] = datetime;
+    final endpointUri = Uri.parse(sigv4Client.endpoint);
+    headers[_host] = endpointUri.host;
+
+    headers[_authorization] = _generateAuthorization(datetime);
+    if (sigv4Client.sessionToken != null) {
+      headers[_x_amz_security_token] = sigv4Client.sessionToken;
+    }
+    headers.remove(_host);
+
+    url = _generateUrl();
+
+    if (headers['Content-Type'] == null) {
+      headers['Content-Type'] = sigv4Client.defaultContentType;
+    }
+  }
+
+  String _generateUrl() {
+    var url = '${sigv4Client.endpoint}$path';
+    if (queryParams != null) {
+      final queryString = Sigv4.buildCanonicalQueryString(queryParams);
+      if (queryString != '') {
+        url += '?$queryString';
+      }
+    }
+    return url;
+  }
+
+  String _generateAuthorization(String datetime) {
+    canonicalRequest =
+        Sigv4.buildCanonicalRequest(method, path, queryParams, headers, body);
+    hashedCanonicalRequest = Sigv4.hashCanonicalRequest(canonicalRequest);
+    credentialScope = Sigv4.buildCredentialScope(
+        datetime, sigv4Client.region, sigv4Client.serviceName);
+    stringToSign = Sigv4.buildStringToSign(
+        datetime, credentialScope, hashedCanonicalRequest);
+    signingKey = Sigv4.calculateSigningKey(sigv4Client.secretKey, datetime,
+        sigv4Client.region, sigv4Client.serviceName);
+    signature = Sigv4.calculateSignature(signingKey, stringToSign);
+    return Sigv4.buildAuthorizationHeader(
+        sigv4Client.accessKey, credentialScope, headers, signature);
+  }
+}
 
 class Sigv4 {
-  final String access_key;
-  final String secret_key;
-
-  Sigv4({this.access_key, this.secret_key});
-
-  /// Signs the provided [key] and [message] with hmac(sha256) and returns the digest
-  Digest sign(key, message) {
-    var keyBytes = utf8.encode(key);
-    var messageBytes = utf8.encode(message);
-    var hmacSha256 = Hmac(sha256, keyBytes);
-    var digest = hmacSha256.convert(messageBytes);
-    return digest;
+  static String generateDatetime() {
+    return new DateTime.now()
+        .toUtc()
+        .toString()
+        .replaceAll(new RegExp(r'\.\d*Z$'), 'Z')
+        .replaceAll(new RegExp(r'[:-]|\.\d{3}'), '')
+        .split(' ')
+        .join('T');
   }
 
-  /// Generates the signature key from [key], [dateStamp], [regionName] and [serviceName] params,
-  ///  and returns the digets.
-  Digest getSignatureKey(key, dateStamp, regionName, serviceName) {
-    var kDate = sign(utf8.encode('AWS4$key'), dateStamp);
-    var kRegion = sign(kDate, regionName);
-    var kService = sign(kRegion, serviceName);
-    var kSigning = sign(kService, 'aws4_request');
-    return kSigning;
+  static List<int> hash(List<int> value) {
+    return sha256.convert(value).bytes;
   }
 
-  Map<String, String> getHeaders(
-      {@required String method,
-      @required String service,
-      @required String host,
-      @required String region,
-      @required String endpoint,
-      @required String request_parameters,
-      String canonical_uri = '/'}) {
-    var t = DateTime.now();
-    var formatter = DateFormat.yMd();
-    var amzdate = t.toUtc().toIso8601String();
-    var datestamp = formatter.format(t);
+  static String hexEncode(List<int> value) {
+    return hex.encode(value);
+  }
 
-    /// Create the canonical query string. In a [GET] request,
-    /// request parameters are in the query string. Query string values
-    /// must be URL-encoded (space=%20). The parameters must be sorted
-    /// by name.
-    var canonical_querystring = request_parameters;
+  static List<int> sign(List<int> key, String message) {
+    Hmac hmac = new Hmac(sha256, key);
+    Digest dig = hmac.convert(utf8.encode(message));
+    return dig.bytes;
+  }
 
-    /// Create the canonical headers and signed headers. Header names
-    /// must be trimmed and lowecase, and sorted in code point order from
-    /// low to high. [signed_headers] is the list of headers that are
-    /// being included as part of the signing process. For requests that
-    /// use query strings, only 'host' is included in the signed headers.
-    var canonical_headers = 'host:$host\nx-amz-date:$amzdate\n';
-    var signed_headers = 'host;x-amz-date';
-    var payload_hash = hex.encode(sha256.convert(utf8.encode('')).bytes);
+  static String hashCanonicalRequest(String request) {
+    return hexEncode(hash(utf8.encode(request)));
+  }
 
-    var canonical_request =
-        '$method\n$canonical_uri\n$canonical_querystring\n$canonical_headers\n$signed_headers\n$payload_hash';
+  static String buildCanonicalUri(String uri) {
+    return Uri.encodeFull(uri);
+  }
 
-    /// Match the algorithm to the hashin algorithm used, either [SHA-1] or [SHA-256]
-    /// as used here.
-    var algorithm = 'AWS-HMAC-SHA256';
-    var credential_scope = '$datestamp/$region/$service/aws4_request';
+  static String buildCanonicalQueryString(Map<String, String> queryParams) {
+    if (queryParams == null) {
+      return '';
+    }
 
-    var string_to_sign =
-        '$algorithm\n$amzdate\n$credential_scope\n${hex.encode(sha256.convert(utf8.encode(canonical_request)).bytes)}';
+    final List<String> sortedQueryParams = [];
+    queryParams.forEach((key, value) {
+      sortedQueryParams.add(key);
+    });
+    sortedQueryParams.sort();
 
-    /// Create the signing key using the function [getSignatureKey()].
-    var signing_key = getSignatureKey(secret_key, datestamp, region, service);
-    var hmacSha56 = Hmac(sha256, signing_key.bytes);
+    final List<String> canonicalQueryStrings = [];
+    sortedQueryParams.forEach((key) {
+      canonicalQueryStrings
+          .add('$key=${Uri.encodeComponent(queryParams[key])}');
+    });
 
-    /// Sign [string_to_sign] using the signing key
-    var signature =
-        hex.encode(hmacSha56.convert(utf8.encode(string_to_sign)).bytes);
+    return canonicalQueryStrings.join('&');
+  }
 
-    /// Add signing information to the request. Create authorization
-    /// header and add to request headers
-    var auth_header =
-        '$algorithm Credential=$access_key/$credential_scope, SignedHeaders=$signed_headers, Signature=$signature';
-    var headers = {'x-amz-date': amzdate, 'Authorization': auth_header};
+  static String buildCanonicalHeaders(Map<String, String> headers) {
+    final List<String> sortedKeys = [];
+    headers.forEach((property, _) {
+      sortedKeys.add(property);
+    });
 
-    return headers;
+    var canonicalHeaders = '';
+    sortedKeys.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+
+    sortedKeys.forEach((property) {
+      canonicalHeaders += '${property.toLowerCase()}:${headers[property]}\n';
+    });
+
+    return canonicalHeaders;
+  }
+
+  static String buildCanonicalSignedHeaders(Map<String, String> headers) {
+    final List<String> sortedKeys = [];
+    headers.forEach((property, _) {
+      sortedKeys.add(property.toLowerCase());
+    });
+    sortedKeys.sort();
+
+    return sortedKeys.join(';');
+  }
+
+  static String buildStringToSign(
+      String datetime, String credentialScope, String hashedCanonicalRequest) {
+    return '$_aws_sha_256\n$datetime\n$credentialScope\n$hashedCanonicalRequest';
+  }
+
+  static String buildCredentialScope(
+      String datetime, String region, String service) {
+    return '${datetime.substring(0, 8)}/$region/$service/$_aws4_request';
+  }
+
+  static String buildCanonicalRequest(
+      String method,
+      String path,
+      Map<String, String> queryParams,
+      Map<String, String> headers,
+      String payload) {
+    List<String> canonicalRequest = [
+      method,
+      buildCanonicalUri(path),
+      buildCanonicalQueryString(queryParams),
+      buildCanonicalHeaders(headers),
+      buildCanonicalSignedHeaders(headers),
+      hexEncode(hash(utf8.encode(payload))),
+    ];
+    return canonicalRequest.join('\n');
+  }
+
+  static String buildAuthorizationHeader(String accessKey,
+      String credentialScope, Map<String, String> headers, String signature) {
+    return _aws_sha_256 +
+        ' Credential=' +
+        accessKey +
+        '/' +
+        credentialScope +
+        ', SignedHeaders=' +
+        buildCanonicalSignedHeaders(headers) +
+        ', Signature=' +
+        signature;
+  }
+
+  static List<int> calculateSigningKey(
+      String secretKey, String datetime, String region, String service) {
+    return sign(
+        sign(
+            sign(
+                sign(utf8.encode('$_aws4$secretKey'), datetime.substring(0, 8)),
+                region),
+            service),
+        _aws4_request);
+  }
+
+  static String calculateSignature(List<int> signingKey, String stringToSign) {
+    return hexEncode(sign(signingKey, stringToSign));
   }
 }
