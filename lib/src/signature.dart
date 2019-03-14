@@ -126,11 +126,11 @@ class Sigv4Request {
 
 class Sigv4 {
   static String generateDatetime() {
-    return new DateTime.now()
+    return  DateTime.now()
         .toUtc()
         .toString()
-        .replaceAll(new RegExp(r'\.\d*Z$'), 'Z')
-        .replaceAll(new RegExp(r'[:-]|\.\d{3}'), '')
+        .replaceAll( RegExp(r'\.\d*Z$'), 'Z')
+        .replaceAll( RegExp(r'[:-]|\.\d{3}'), '')
         .split(' ')
         .join('T');
   }
@@ -144,7 +144,7 @@ class Sigv4 {
   }
 
   static List<int> sign(List<int> key, String message) {
-    Hmac hmac = new Hmac(sha256, key);
+    Hmac hmac = Hmac(sha256, key);
     Digest dig = hmac.convert(utf8.encode(message));
     return dig.bytes;
   }
