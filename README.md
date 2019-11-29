@@ -51,5 +51,3 @@ final headers = client.signedHeaders(
 // package:http get
 get(url, headers: headers);
 ```
-
-## Signing
