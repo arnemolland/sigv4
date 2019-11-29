@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.0+2
+
+- Removed too complex signature text (dependent on current datetime)
+
 ## 2.1.0+1
 
 - Formatting
