@@ -1,5 +1,5 @@
 name: sigv4
-description: Library for signing AWS requests with Signature Version 4
+description: Library for signing AWS requests with Signature Version 4, with both convenience wrappers/classes and cryptography methods
 author: arnemolland <arneolaim@gmail.com>
 homepage: https://github.com/arnemolland/sigv4
 

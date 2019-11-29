@@ -59,7 +59,8 @@ class Sigv4 {
 
     final List<String> canonicalQueryStrings = [];
     sortedQueryParams.forEach((key) {
-      canonicalQueryStrings.add('$key=${Uri.encodeComponent(queryParams[key].toString())}');
+      canonicalQueryStrings
+          .add('$key=${Uri.encodeComponent(queryParams[key].toString())}');
     });
 
     return canonicalQueryStrings.join('&');
@@ -76,7 +77,8 @@ class Sigv4 {
     sortedKeys.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
 
     sortedKeys.forEach((property) {
-      canonicalHeaders += '${property.toLowerCase()}:${headers[property].toString()}\n';
+      canonicalHeaders +=
+          '${property.toLowerCase()}:${headers[property].toString()}\n';
     });
 
     return canonicalHeaders;
@@ -100,7 +102,8 @@ class Sigv4 {
   }
 
   /// Builds the required credential scope
-  static String buildCredentialScope(String datetime, String region, String service) {
+  static String buildCredentialScope(
+      String datetime, String region, String service) {
     return '${datetime.substring(0, 8)}/$region/$service/$_aws4_request';
   }
 
@@ -124,8 +127,8 @@ class Sigv4 {
   }
 
   /// Builds the `Authorization` headers
-  static String buildAuthorizationHeader(
-      String accessKey, String credentialScope, Map<String, dynamic> headers, String signature) {
+  static String buildAuthorizationHeader(String accessKey,
+      String credentialScope, Map<String, dynamic> headers, String signature) {
     return _aws_sha_256 +
         ' Credential=' +
         accessKey +
@@ -142,7 +145,10 @@ class Sigv4 {
       String secretKey, String datetime, String region, String service) {
     return sign(
         sign(
-            sign(sign(utf8.encode('$_aws4$secretKey'), datetime.substring(0, 8)), region), service),
+            sign(
+                sign(utf8.encode('$_aws4$secretKey'), datetime.substring(0, 8)),
+                region),
+            service),
         _aws4_request);
   }
 
