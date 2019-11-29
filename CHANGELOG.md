@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.0+1
+
+- Formatting
+
 ## 2.1.0
 
 - Fixed request headers type mismatch
