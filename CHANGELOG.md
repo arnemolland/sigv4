@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.0
+
+- Fixed request headers type mismatch
+- Added tests
+
 ## 2.0.1
 
 - Fixed non-string query parameter type errors
