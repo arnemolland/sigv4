@@ -144,16 +144,24 @@ class Sigv4Client implements BaseSigv4Client {
     /// Convert the path to a canonical path
     path = canonicalUrl(path, queryParameters: queryParameters);
     var request = Request(method, Uri.parse(path));
+    var signed = Map<String, String>();
 
-    /// Add the signed headers to the request
-    request.headers.addAll(signedHeaders(
+    signedHeaders(
       path,
       method: method,
       queryParameters: queryParameters,
       headers: headers,
       body: body,
       dateTime: dateTime,
-    ));
+    ).forEach((k, v) => signed.addAll({k: v}));
+
+    /// Add the signed headers to the request
+    request.headers.addAll(signed);
+
+    /// Add the body to the request
+    if (body != null) {
+      request.body = jsonEncode(body);
+    }
 
     return request;
   }

@@ -76,7 +76,7 @@ class Sigv4 {
     sortedKeys.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
 
     sortedKeys.forEach((property) {
-      canonicalHeaders += '${property.toLowerCase()}:${headers[property]}\n';
+      canonicalHeaders += '${property.toLowerCase()}:${headers[property].toString()}\n';
     });
 
     return canonicalHeaders;

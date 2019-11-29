@@ -7,7 +7,7 @@
 
 ## 2.0.0
 
-BREAKING CHANGES:
+### **BREAKING CHANGES:**
 
 - Removed Sigv4Request, only Sigv4Client is needed
 - Exposed methods for building headers and canonical path independently

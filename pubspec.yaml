@@ -3,7 +3,7 @@ description: Library for signing AWS requests with Signature Version 4
 author: arnemolland <arneolaim@gmail.com>
 homepage: https://github.com/arnemolland/sigv4
 
-version: 2.0.1
+version: 2.1.0
 
 environment:
   sdk: ">=2.0.0 <3.0.0"
