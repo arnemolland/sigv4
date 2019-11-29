@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.1
+
+- Fixed non-string query parameter type errors
+- Tweaked readme
+
 ## 2.0.0
 
 BREAKING CHANGES:

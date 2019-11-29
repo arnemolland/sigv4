@@ -46,27 +46,27 @@ class Sigv4 {
   }
 
   /// Builds a canonical query string from the given `queryParams` parameters
-  static String buildCanonicalQueryString(Map<String, String> queryParams) {
+  static String buildCanonicalQueryString(Map<String, dynamic> queryParams) {
     if (queryParams == null) {
       return '';
     }
 
     final List<String> sortedQueryParams = [];
     queryParams.forEach((key, value) {
-      sortedQueryParams.add(key);
+      sortedQueryParams.add(key.toString());
     });
     sortedQueryParams.sort();
 
     final List<String> canonicalQueryStrings = [];
     sortedQueryParams.forEach((key) {
-      canonicalQueryStrings.add('$key=${Uri.encodeComponent(queryParams[key])}');
+      canonicalQueryStrings.add('$key=${Uri.encodeComponent(queryParams[key].toString())}');
     });
 
     return canonicalQueryStrings.join('&');
   }
 
   /// Builds a canonical header string from the given `headers`
-  static String buildCanonicalHeaders(Map<String, String> headers) {
+  static String buildCanonicalHeaders(Map<String, dynamic> headers) {
     final List<String> sortedKeys = [];
     headers.forEach((property, _) {
       sortedKeys.add(property);
@@ -83,7 +83,7 @@ class Sigv4 {
   }
 
   /// Builds a signed canonical header string from the given `headers`
-  static String buildCanonicalSignedHeaders(Map<String, String> headers) {
+  static String buildCanonicalSignedHeaders(Map<String, dynamic> headers) {
     final List<String> sortedKeys = [];
     headers.forEach((property, _) {
       sortedKeys.add(property.toLowerCase());
@@ -105,8 +105,13 @@ class Sigv4 {
   }
 
   /// Builds a canonical string containing a complete request
-  static String buildCanonicalRequest(String method, String path, Map<String, String> queryParams,
-      Map<String, String> headers, String payload) {
+  static String buildCanonicalRequest(
+    String method,
+    String path,
+    Map<String, dynamic> queryParams,
+    Map<String, dynamic> headers,
+    String payload,
+  ) {
     List<String> canonicalRequest = [
       method,
       buildCanonicalUri(path),
@@ -120,7 +125,7 @@ class Sigv4 {
 
   /// Builds the `Authorization` headers
   static String buildAuthorizationHeader(
-      String accessKey, String credentialScope, Map<String, String> headers, String signature) {
+      String accessKey, String credentialScope, Map<String, dynamic> headers, String signature) {
     return _aws_sha_256 +
         ' Credential=' +
         accessKey +

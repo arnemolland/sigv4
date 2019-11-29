@@ -21,7 +21,7 @@ The easier way to create a request is by getting a [`package:http`](https://pub.
 ```dart
 // A simple GET-request
 final request = client.request('https://service.aws.com/endpoint');
-// package:http get
+
 get(request.url, headers: request.headers);
 
 // A larger request
@@ -32,7 +32,7 @@ final request = client.request(
   headers: {'header': 'value'},
   body: {'content': 'some-content'},
 );
-// package:http post
+
 post(request.url, headers: request.headers, body: request.body);
 ```
 
@@ -48,6 +48,5 @@ final headers = client.signedHeaders(
   queryParameters: queryParameters,
 );
 
-// package:http get
 get(url, headers: headers);
 ```
