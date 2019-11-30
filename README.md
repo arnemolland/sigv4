@@ -1,4 +1,6 @@
-# sigv4
+<img src="/Users/bruker/sigv4/assets/logo-long.png" alt="logo-long" style="zoom:5%;float: left;" />
+
+![sigv4](https://github.com/arnemolland/dart-dnb/workflows/Dart%20CI/badge.svg) ![pub](https://img.shields.io/pub/v/sigv4.svg) [![style: pedantic](https://img.shields.io/badge/style-pedantic-9cf)](https://github.com/dart-lang/pedantic) ![license](https://img.shields.io/github/license/arnemolland/dart-dnb.svg)
 
 A Dart library for signing AWS requests with Signature Version 4.
 
