@@ -1,23 +1,30 @@
+import 'package:dio/dio.dart';
 import 'package:http/http.dart';
-import 'package:sigv4/src/client.dart';
+import 'package:sigv4/sigv4.dart';
 
+/// This sample contains several placeholders for otherwise secret keys
+/// and values, and will not run before you provide valid values and
+/// a valid endpoint.
 void main() {
   final client = Sigv4Client(
+    keyId: 'your_access_key_id',
     accessKey: 'your_access_key',
-    secretKey: 'your_secret_key',
   );
 
+  // Some fictive endpoint
+  final path = 'https://service.aws.com/endpoint/replace-this-placeholder';
+
   // Create the request
-  final request = client.request('https://service.aws.com/endpoint');
+  var request = client.request(path);
 
   // GET request
   get(request.url, headers: request.headers);
 
   // A larger request
   final largeRequest = client.request(
-    'https://service.aws.com/endpoint',
+    path,
     method: 'POST',
-    queryParameters: {'key': 'value'},
+    query: {'key': 'value'},
     headers: {'header': 'value'},
     body: {'content': 'some-content'},
   );
@@ -25,15 +32,20 @@ void main() {
   // POST request
   post(largeRequest.url, headers: largeRequest.headers, body: largeRequest.body);
 
-  final path = 'https://service.aws.com/endpoint';
-  final queryParameters = {'key': 'value'};
+  final query = {'key': 'value'};
 
-  final url = client.canonicalUrl(path, queryParameters: queryParameters);
+  final url = client.canonicalUrl(path, query: query);
   final headers = client.signedHeaders(
     path,
-    queryParameters: queryParameters,
+    query: query,
   );
 
   // GET request
   get(url, headers: headers);
+
+  // Extensions on `http` Request objects
+  Request('GET', Uri.parse(path)).sign(client);
+
+  // Extensions on `dio` RequestOptions objects
+  RequestOptions(method: 'GET', path: path).sign(client);
 }

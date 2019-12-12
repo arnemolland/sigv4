@@ -13,8 +13,8 @@ Create a `Sigv4Client`. This will hold your secrets and configuration. Some omit
 
 ```Dart
 final client = Sigv4Client(
+  keyId: 'your_access_key_id',
   accessKey: 'your_access_key',
-  secretKey: 'your_secret_key',
 );
 ```
 
@@ -30,7 +30,7 @@ get(request.url, headers: request.headers);
 final request = client.request(
   'https://service.aws.com/endpoint',
   method: 'POST',
-  queryParameters: {'key': 'value'},
+  query: {'key': 'value'},
   headers: {'header': 'value'},
   body: {'content': 'some-content'},
 );
@@ -42,13 +42,32 @@ Alternatively, you can get the canonical string and signed headers separately:
 
 ```dart
 final path = 'https://service.aws.com/endpoint';
-final queryParameters = {'key': 'value'};
+final query = {'key': 'value'};
 
-final url = client.canonicalUrl(path, queryParameters: queryParameters);
+final url = client.canonicalUrl(path, query: query);
 final headers = client.signedHeaders(
   path,
-  queryParameters: queryParameters,
+  query: query,
 );
 
 get(url, headers: headers);
 ```
+
+
+
+## Extensions
+
+As of Dart 2.7.0, extensions were introduced. As of this release, `sigv4` has extensions for these HTTP clients, as well as any source gen package built on these:
+
+- `http`
+- `dio`
+- `chopper`
+
+All extensions adds a `.sign()` method to the request object which uses the client to sign the request. Example using Dio:
+
+```dart
+  final dio = RequestOptions(method: 'GET', path: 'https://service.aws.com').sign(client);
+```
+
+
+

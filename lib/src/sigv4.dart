@@ -45,22 +45,22 @@ class Sigv4 {
     return Uri.encodeFull(uri);
   }
 
-  /// Builds a canonical query string from the given `queryParams` parameters
-  static String buildCanonicalQueryString(Map<String, dynamic> queryParams) {
-    if (queryParams == null) {
+  /// Builds a canonical query string from the given `query` parameters
+  static String buildCanonicalQueryString(Map<String, dynamic> query) {
+    if (query == null) {
       return '';
     }
 
-    final List<String> sortedQueryParams = [];
-    queryParams.forEach((key, value) {
-      sortedQueryParams.add(key.toString());
+    final List<String> sortedQuery = [];
+    query.forEach((key, value) {
+      sortedQuery.add(key.toString());
     });
-    sortedQueryParams.sort();
+    sortedQuery.sort();
 
     final List<String> canonicalQueryStrings = [];
-    sortedQueryParams.forEach((key) {
+    sortedQuery.forEach((key) {
       canonicalQueryStrings
-          .add('$key=${Uri.encodeComponent(queryParams[key].toString())}');
+          .add('$key=${Uri.encodeComponent(query[key].toString())}');
     });
 
     return canonicalQueryStrings.join('&');
@@ -111,14 +111,14 @@ class Sigv4 {
   static String buildCanonicalRequest(
     String method,
     String path,
-    Map<String, dynamic> queryParams,
+    Map<String, dynamic> query,
     Map<String, dynamic> headers,
     String payload,
   ) {
     List<String> canonicalRequest = [
       method,
       buildCanonicalUri(path),
-      buildCanonicalQueryString(queryParams),
+      buildCanonicalQueryString(query),
       buildCanonicalHeaders(headers),
       buildCanonicalSignedHeaders(headers),
       hexEncode(hash(utf8.encode(payload))),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:meta/meta.dart';
 import 'package:http/http.dart';
 
 import 'base_client.dart';
@@ -13,17 +14,19 @@ const _default_content_type = 'application/json';
 const _default_accept_type = 'application/json';
 
 /// A client that stores secrets and configuration for AWS requests
-/// signed with Signature Version 4
+/// signed with Signature Version 4. Required the following parameters:
+/// - `keyId`: Your access key ID
+/// - `accessKey`: Your secret access key
 class Sigv4Client implements BaseSigv4Client {
   /// The region of the service(s) to be called.
   /// Defaults to `eu-west-1`
   String region;
 
-  /// Your access key / client ID
-  String accessKey;
+  /// Your access key ID
+  String keyId;
 
-  /// Your secret key
-  String secretKey;
+  /// Your secret access key
+  String accessKey;
 
   /// An optional session token
   String sessionToken;
@@ -41,31 +44,32 @@ class Sigv4Client implements BaseSigv4Client {
   String defaultAcceptType;
 
   Sigv4Client({
-    this.accessKey,
-    this.secretKey,
+    @required this.keyId,
+    @required this.accessKey,
     this.serviceName = 'execute-api',
     this.region = 'eu-west-1',
     this.sessionToken,
     this.defaultContentType = _default_content_type,
     this.defaultAcceptType = _default_accept_type,
-  });
+  })  : assert(keyId != null),
+        assert(accessKey != null);
 
   /// Returns the path with encoded, canonical query parameters.
   /// This is __required__ by AWS.
-  String canonicalUrl(String path, {Map<String, dynamic> queryParameters}) {
-    return _generateUrl(path, queryParameters: queryParameters);
+  String canonicalUrl(String path, {Map<String, dynamic> query}) {
+    return _generateUrl(path, query: query);
   }
 
   /// Generates SIGV4-signed headers.
   /// - `path`: The complete path of your request
   /// - `method`: The HTTP verb your request is using
-  /// - `queryParams`: Query parameters, if any. __required__ to be included if used
+  /// - `query`: Query parameters, if any. __required__ to be included if used
   /// - `headers`: Any additional headers. **DO NOT** add headers to your request after generating signed headers
   /// - `body`: The request body, if any
-  Map<String, dynamic> signedHeaders(
+  Map<String, String> signedHeaders(
     String path, {
     String method = 'GET',
-    Map<String, dynamic> queryParameters,
+    Map<String, dynamic> query,
     Map<String, dynamic> headers,
     dynamic body,
     String dateTime,
@@ -102,33 +106,33 @@ class Sigv4Client implements BaseSigv4Client {
       headers.remove('Content-Type');
     }
 
-    /// Set or generate the `dateTime` parameter needed for the signature
+    /// Sets or generate the `dateTime` parameter needed for the signature
     if (dateTime == null) {
       dateTime = Sigv4.generateDatetime();
     }
     headers[_x_amz_date] = dateTime;
 
-    /// Set the `host` header
+    /// Sets the `host` header
     final endpointUri = Uri.parse(endpoint);
     headers[_host] = endpointUri.host;
 
-    /// Generate the `Authorization` headers
+    /// Generates the `Authorization` headers
     headers[_authorization] = _generateAuthorization(
       method: method,
       path: path,
-      queryParams: queryParameters,
+      query: query,
       headers: headers,
       body: body,
       dateTime: dateTime,
     );
 
-    /// Add the `x-amz-security-token` header
+    /// Adds the `x-amz-security-token` header if a session token is present
     if (this.sessionToken != null) {
       headers[_x_amz_security_token] = this.sessionToken;
     }
     headers.remove(_host);
 
-    return headers;
+    return headers.cast<String, String>();
   }
 
   /// A wrapper that generates both the canonical path and
@@ -136,20 +140,20 @@ class Sigv4Client implements BaseSigv4Client {
   Request request(
     String path, {
     String method = 'GET',
-    Map<String, dynamic> queryParameters,
+    Map<String, dynamic> query,
     Map<String, dynamic> headers,
     dynamic body,
     String dateTime,
   }) {
     /// Convert the path to a canonical path
-    path = canonicalUrl(path, queryParameters: queryParameters);
+    path = canonicalUrl(path, query: query);
     var request = Request(method, Uri.parse(path));
     var signed = Map<String, String>();
 
     signedHeaders(
       path,
       method: method,
-      queryParameters: queryParameters,
+      query: query,
       headers: headers,
       body: body,
       dateTime: dateTime,
@@ -166,10 +170,10 @@ class Sigv4Client implements BaseSigv4Client {
     return request;
   }
 
-  String _generateUrl(String path, {Map<String, dynamic> queryParameters}) {
+  String _generateUrl(String path, {Map<String, dynamic> query}) {
     var url = '$path';
-    if (queryParameters != null) {
-      final queryString = Sigv4.buildCanonicalQueryString(queryParameters);
+    if (query != null) {
+      final queryString = Sigv4.buildCanonicalQueryString(query);
       if (queryString != '') {
         url += '?$queryString';
       }
@@ -180,22 +184,22 @@ class Sigv4Client implements BaseSigv4Client {
   String _generateAuthorization({
     String method,
     String path,
-    Map<String, dynamic> queryParams,
+    Map<String, dynamic> query,
     Map<String, dynamic> headers,
     dynamic body,
     String dateTime,
   }) {
     final canonicalRequest =
-        Sigv4.buildCanonicalRequest(method, path, queryParams, headers, body);
+        Sigv4.buildCanonicalRequest(method, path, query, headers, body);
     final hashedCanonicalRequest = Sigv4.hashCanonicalRequest(canonicalRequest);
     final credentialScope =
         Sigv4.buildCredentialScope(dateTime, this.region, this.serviceName);
     final stringToSign = Sigv4.buildStringToSign(
         dateTime, credentialScope, hashedCanonicalRequest);
     final signingKey = Sigv4.calculateSigningKey(
-        this.secretKey, dateTime, this.region, this.serviceName);
+        this.accessKey, dateTime, this.region, this.serviceName);
     final signature = Sigv4.calculateSignature(signingKey, stringToSign);
     return Sigv4.buildAuthorizationHeader(
-        this.accessKey, credentialScope, headers, signature);
+        this.keyId, credentialScope, headers, signature);
   }
 }
