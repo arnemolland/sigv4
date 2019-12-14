@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.0+1
+
+- External image reference in readme
+
 ## 3.0.0
 
 - Added/clarified documentation
