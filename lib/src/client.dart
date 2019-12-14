@@ -189,17 +189,13 @@ class Sigv4Client implements BaseSigv4Client {
     dynamic body,
     String dateTime,
   }) {
-    final canonicalRequest =
-        Sigv4.buildCanonicalRequest(method, path, query, headers, body);
+    final canonicalRequest = Sigv4.buildCanonicalRequest(method, path, query, headers, body);
     final hashedCanonicalRequest = Sigv4.hashCanonicalRequest(canonicalRequest);
-    final credentialScope =
-        Sigv4.buildCredentialScope(dateTime, this.region, this.serviceName);
-    final stringToSign = Sigv4.buildStringToSign(
-        dateTime, credentialScope, hashedCanonicalRequest);
-    final signingKey = Sigv4.calculateSigningKey(
-        this.accessKey, dateTime, this.region, this.serviceName);
+    final credentialScope = Sigv4.buildCredentialScope(dateTime, this.region, this.serviceName);
+    final stringToSign = Sigv4.buildStringToSign(dateTime, credentialScope, hashedCanonicalRequest);
+    final signingKey =
+        Sigv4.calculateSigningKey(this.accessKey, dateTime, this.region, this.serviceName);
     final signature = Sigv4.calculateSignature(signingKey, stringToSign);
-    return Sigv4.buildAuthorizationHeader(
-        this.keyId, credentialScope, headers, signature);
+    return Sigv4.buildAuthorizationHeader(this.keyId, credentialScope, headers, signature);
   }
 }
