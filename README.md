@@ -1,4 +1,4 @@
-<img src="assets/logo-long.png" alt="logo-long" style="zoom:1%;float: left;" width="500" />
+<img src="https://github.com/arnemolland/sigv4/blob/master/assets/logo-long.png?raw=true" alt="logo-long" style="zoom:1%;float: left;" width="500" />
 
 ![sigv4](https://github.com/arnemolland/dart-dnb/workflows/Dart%20CI/badge.svg) ![pub](https://img.shields.io/pub/v/sigv4.svg) [![style: pedantic](https://img.shields.io/badge/style-pedantic-9cf)](https://github.com/dart-lang/pedantic) ![license](https://img.shields.io/github/license/arnemolland/dart-dnb.svg)
 
