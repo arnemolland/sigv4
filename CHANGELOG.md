@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.0.0
+
+- Added/clarified documentation
+- Added extensions for `http`, `dio` and `chopper`
+
+### **BREAKING CHANGES**
+
+Renamed some parameters to be more consistent with AWS's documentation
+
+- `accessKey` => `keyId`
+- `secretKey` => `accessKey`
+
 ## 2.1.0+2
 
 - Removed too complex signature text (dependent on current datetime)

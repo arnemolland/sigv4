@@ -4,7 +4,7 @@ abstract class BaseSigv4Client {
   Request request(
     String path, {
     String method,
-    Map<String, dynamic> queryParameters,
+    Map<String, dynamic> query,
     Map<String, dynamic> headers,
     dynamic body,
     String dateTime,
@@ -13,11 +13,11 @@ abstract class BaseSigv4Client {
   Map<String, dynamic> signedHeaders(
     String path, {
     String method,
-    Map<String, dynamic> queryParameters,
+    Map<String, dynamic> query,
     Map<String, dynamic> headers,
     dynamic body,
     String dateTime,
   });
 
-  String canonicalUrl(String path, {Map<String, dynamic> queryParameters});
+  String canonicalUrl(String path, {Map<String, dynamic> query});
 }
