@@ -19,7 +19,6 @@ const _default_accept_type = 'application/json';
 /// - `accessKey`: Your secret access key
 class Sigv4Client implements BaseSigv4Client {
   /// The region of the service(s) to be called.
-  /// Defaults to `eu-west-1`
   String region;
 
   /// Your access key ID
@@ -32,7 +31,7 @@ class Sigv4Client implements BaseSigv4Client {
   String sessionToken;
 
   /// The name of the service to be called.
-  /// Defaults to `execute-api`
+  /// E.g. `s3`, `execute-api` etc.
   String serviceName;
 
   /// The default `Content-Type` header value.
@@ -46,8 +45,8 @@ class Sigv4Client implements BaseSigv4Client {
   Sigv4Client({
     @required this.keyId,
     @required this.accessKey,
-    this.serviceName = 'execute-api',
-    this.region = 'eu-west-1',
+    @required this.serviceName,
+    @required this.region,
     this.sessionToken,
     this.defaultContentType = _default_content_type,
     this.defaultAcceptType = _default_accept_type,
@@ -65,7 +64,8 @@ class Sigv4Client implements BaseSigv4Client {
   /// - `method`: The HTTP verb your request is using
   /// - `query`: Query parameters, if any. __required__ to be included if used
   /// - `headers`: Any additional headers. **DO NOT** add headers to your request after generating signed headers
-  /// - `body`: The request body, if any
+  /// - `body`: An *encodable* object
+  /// - `dateTime`: An AWS-compatible time string. You'll probably want to leave it blank.
   Map<String, String> signedHeaders(
     String path, {
     String method = 'GET',
@@ -137,6 +137,12 @@ class Sigv4Client implements BaseSigv4Client {
 
   /// A wrapper that generates both the canonical path and
   /// signed headers and returns a [Request] object from [package:http](https://pub.dev/packages/http)
+  /// - `path`: The complete path of your request
+  /// - `method`: The HTTP verb your request is using
+  /// - `query`: Query parameters, if any. __required__ to be included if used
+  /// - `headers`: Any additional headers. **DO NOT** add headers to your request after generating signed headers
+  /// - `body`: An *encodable* object
+  /// - `dateTime`: An AWS-compatible time string. You'll probably want to leave it blank.
   Request request(
     String path, {
     String method = 'GET',
@@ -145,7 +151,7 @@ class Sigv4Client implements BaseSigv4Client {
     dynamic body,
     String dateTime,
   }) {
-    /// Convert the path to a canonical path
+    /// Converts the path to a canonical path
     path = canonicalUrl(path, query: query);
     var request = Request(method, Uri.parse(path));
     var signed = Map<String, String>();
@@ -159,10 +165,10 @@ class Sigv4Client implements BaseSigv4Client {
       dateTime: dateTime,
     ).forEach((k, v) => signed.addAll({k: v}));
 
-    /// Add the signed headers to the request
+    /// Adds the signed headers to the request
     request.headers.addAll(signed);
 
-    /// Add the body to the request
+    /// Adds the body to the request
     if (body != null) {
       request.body = jsonEncode(body);
     }
@@ -189,13 +195,17 @@ class Sigv4Client implements BaseSigv4Client {
     dynamic body,
     String dateTime,
   }) {
-    final canonicalRequest = Sigv4.buildCanonicalRequest(method, path, query, headers, body);
+    final canonicalRequest =
+        Sigv4.buildCanonicalRequest(method, path, query, headers, body);
     final hashedCanonicalRequest = Sigv4.hashCanonicalRequest(canonicalRequest);
-    final credentialScope = Sigv4.buildCredentialScope(dateTime, this.region, this.serviceName);
-    final stringToSign = Sigv4.buildStringToSign(dateTime, credentialScope, hashedCanonicalRequest);
-    final signingKey =
-        Sigv4.calculateSigningKey(this.accessKey, dateTime, this.region, this.serviceName);
+    final credentialScope =
+        Sigv4.buildCredentialScope(dateTime, this.region, this.serviceName);
+    final stringToSign = Sigv4.buildStringToSign(
+        dateTime, credentialScope, hashedCanonicalRequest);
+    final signingKey = Sigv4.calculateSigningKey(
+        this.accessKey, dateTime, this.region, this.serviceName);
     final signature = Sigv4.calculateSignature(signingKey, stringToSign);
-    return Sigv4.buildAuthorizationHeader(this.keyId, credentialScope, headers, signature);
+    return Sigv4.buildAuthorizationHeader(
+        this.keyId, credentialScope, headers, signature);
   }
 }

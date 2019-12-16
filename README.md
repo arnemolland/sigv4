@@ -15,6 +15,8 @@ Create a `Sigv4Client`. This will hold your secrets and configuration. Some omit
 final client = Sigv4Client(
   keyId: 'your_access_key_id',
   accessKey: 'your_access_key',
+  region: 'eu-west-1',.
+  serviceName: 'execute-api',
 );
 ```
 
@@ -53,8 +55,6 @@ final headers = client.signedHeaders(
 get(url, headers: headers);
 ```
 
-
-
 ## Extensions
 
 As of Dart 2.7.0, extensions were introduced. As of this release, `sigv4` has extensions for these HTTP clients, as well as any source gen package built on these:
@@ -68,6 +68,3 @@ All extensions adds a `.sign()` method to the request object which uses the clie
 ```dart
   final dio = RequestOptions(method: 'GET', path: 'https://service.aws.com').sign(client);
 ```
-
-
-
