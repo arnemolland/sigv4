@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.1.0
+
+- `service` and `region` parameters are now required
+
+## 3.0.0+1
+
+- External image reference in readme
+
 ## 3.0.0
 
 - Added/clarified documentation

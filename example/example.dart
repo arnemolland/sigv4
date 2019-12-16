@@ -9,6 +9,8 @@ void main() {
   final client = Sigv4Client(
     keyId: 'your_access_key_id',
     accessKey: 'your_access_key',
+    region: 'eu-west-1',
+    serviceName: 'execute-api',
   );
 
   // Some fictive endpoint
