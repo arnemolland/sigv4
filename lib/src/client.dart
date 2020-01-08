@@ -8,10 +8,12 @@ import 'sigv4.dart';
 
 const _x_amz_date = 'x-amz-date';
 const _x_amz_security_token = 'x-amz-security-token';
+const _x_amz_content_sha256 = 'x-amz-content-sha256';
 const _host = 'host';
 const _authorization = 'Authorization';
 const _default_content_type = 'application/json';
 const _default_accept_type = 'application/json';
+const _unsigned_payload = 'UNSIGNED-PAYLOAD';
 
 /// A client that stores secrets and configuration for AWS requests
 /// signed with Signature Version 4. Required the following parameters:
@@ -66,6 +68,7 @@ class Sigv4Client implements BaseSigv4Client {
   /// - `headers`: Any additional headers. **DO NOT** add headers to your request after generating signed headers
   /// - `body`: An *encodable* object
   /// - `dateTime`: An AWS-compatible time string. You'll probably want to leave it blank.
+  /// - `signedPayload`: If the optional payload should be signed or unsigned
   Map<String, String> signedHeaders(
     String path, {
     String method = 'GET',
@@ -73,6 +76,7 @@ class Sigv4Client implements BaseSigv4Client {
     Map<String, dynamic> headers,
     dynamic body,
     String dateTime,
+    bool signPayload = true,
   }) {
     /// Split the URI into segments
     final parsedUri = Uri.parse(path);
@@ -101,6 +105,7 @@ class Sigv4Client implements BaseSigv4Client {
       body = '';
     } else {
       body = json.encode(body);
+      headers[_x_amz_content_sha256] = signPayload ? Sigv4.hashPayload(body) : _unsigned_payload;
     }
     if (body == '') {
       headers.remove('Content-Type');
@@ -150,6 +155,7 @@ class Sigv4Client implements BaseSigv4Client {
     Map<String, dynamic> headers,
     dynamic body,
     String dateTime,
+    bool signPayload = true,
   }) {
     /// Converts the path to a canonical path
     path = canonicalUrl(path, query: query);
@@ -163,6 +169,7 @@ class Sigv4Client implements BaseSigv4Client {
       headers: headers,
       body: body,
       dateTime: dateTime,
+      signPayload: signPayload,
     ).forEach((k, v) => signed.addAll({k: v}));
 
     /// Adds the signed headers to the request
@@ -195,17 +202,13 @@ class Sigv4Client implements BaseSigv4Client {
     dynamic body,
     String dateTime,
   }) {
-    final canonicalRequest =
-        Sigv4.buildCanonicalRequest(method, path, query, headers, body);
+    final canonicalRequest = Sigv4.buildCanonicalRequest(method, path, query, headers, body);
     final hashedCanonicalRequest = Sigv4.hashCanonicalRequest(canonicalRequest);
-    final credentialScope =
-        Sigv4.buildCredentialScope(dateTime, this.region, this.serviceName);
-    final stringToSign = Sigv4.buildStringToSign(
-        dateTime, credentialScope, hashedCanonicalRequest);
-    final signingKey = Sigv4.calculateSigningKey(
-        this.accessKey, dateTime, this.region, this.serviceName);
+    final credentialScope = Sigv4.buildCredentialScope(dateTime, this.region, this.serviceName);
+    final stringToSign = Sigv4.buildStringToSign(dateTime, credentialScope, hashedCanonicalRequest);
+    final signingKey =
+        Sigv4.calculateSigningKey(this.accessKey, dateTime, this.region, this.serviceName);
     final signature = Sigv4.calculateSignature(signingKey, stringToSign);
-    return Sigv4.buildAuthorizationHeader(
-        this.keyId, credentialScope, headers, signature);
+    return Sigv4.buildAuthorizationHeader(this.keyId, credentialScope, headers, signature);
   }
 }

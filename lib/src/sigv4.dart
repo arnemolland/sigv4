@@ -40,6 +40,10 @@ class Sigv4 {
     return hexEncode(hash(utf8.encode(request)));
   }
 
+  static String hashPayload(dynamic payload) {
+    return hexEncode(hash(utf8.encode(payload.toString())));
+  }
+
   /// Encodes the given string to a canonical URI
   static String buildCanonicalUri(String uri) {
     return Uri.encodeFull(uri);
@@ -121,7 +125,7 @@ class Sigv4 {
       buildCanonicalQueryString(query),
       buildCanonicalHeaders(headers),
       buildCanonicalSignedHeaders(headers),
-      hexEncode(hash(utf8.encode(payload))),
+      hashPayload(payload),
     ];
     return canonicalRequest.join('\n');
   }
