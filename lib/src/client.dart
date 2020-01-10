@@ -8,10 +8,14 @@ import 'sigv4.dart';
 
 const _x_amz_date = 'x-amz-date';
 const _x_amz_security_token = 'x-amz-security-token';
+const _x_amz_content_sha256 = 'x-amz-content-sha256';
+const _x_amz_decoded_content_length = 'x-amz-decoded-content-length';
 const _host = 'host';
 const _authorization = 'Authorization';
 const _default_content_type = 'application/json';
 const _default_accept_type = 'application/json';
+const _unsigned_payload = 'UNSIGNED-PAYLOAD';
+const _no_payload = 'STREAMING-HMAC-SHA256-PAYLOAD';
 
 /// A client that stores secrets and configuration for AWS requests
 /// signed with Signature Version 4. Required the following parameters:
@@ -66,6 +70,8 @@ class Sigv4Client implements BaseSigv4Client {
   /// - `headers`: Any additional headers. **DO NOT** add headers to your request after generating signed headers
   /// - `body`: An *encodable* object
   /// - `dateTime`: An AWS-compatible time string. You'll probably want to leave it blank.
+  /// - `encoding`: The payload encoding. if any
+  /// - `signPayload`: If the optional payload should be signed or unsigned
   Map<String, String> signedHeaders(
     String path, {
     String method = 'GET',
@@ -73,6 +79,8 @@ class Sigv4Client implements BaseSigv4Client {
     Map<String, dynamic> headers,
     dynamic body,
     String dateTime,
+    String encoding,
+    bool signPayload = true,
   }) {
     /// Split the URI into segments
     final parsedUri = Uri.parse(path);
@@ -84,6 +92,10 @@ class Sigv4Client implements BaseSigv4Client {
     method = method.toUpperCase();
     if (headers == null) {
       headers = {};
+    }
+
+    if (encoding != null) {
+      headers['Content-Encoding'] = encoding;
     }
 
     /// Set the `Content-Type header`
@@ -101,9 +113,13 @@ class Sigv4Client implements BaseSigv4Client {
       body = '';
     } else {
       body = json.encode(body);
+      headers[_x_amz_content_sha256] = signPayload ? Sigv4.hashPayload(body) : _unsigned_payload;
+      headers[_x_amz_decoded_content_length] = utf8.encode(body).length;
+      headers['Content-Length'] = utf8.encode(body).length;
     }
     if (body == '') {
       headers.remove('Content-Type');
+      headers[_x_amz_content_sha256] = _no_payload;
     }
 
     /// Sets or generate the `dateTime` parameter needed for the signature
@@ -115,6 +131,14 @@ class Sigv4Client implements BaseSigv4Client {
     /// Sets the `host` header
     final endpointUri = Uri.parse(endpoint);
     headers[_host] = endpointUri.host;
+
+    if (headers.containsKey('Transfer-Encoding') && headers['Transfer-Encoding'] != 'identity') {
+      headers.remove('Content-Length');
+    }
+
+    if (headers.containsKey('Content-Encoding') && headers['Content-Encoding'] == 'aws-chunked') {
+      // TODO: Support chunks
+    }
 
     /// Generates the `Authorization` headers
     headers[_authorization] = _generateAuthorization(
@@ -143,6 +167,8 @@ class Sigv4Client implements BaseSigv4Client {
   /// - `headers`: Any additional headers. **DO NOT** add headers to your request after generating signed headers
   /// - `body`: An *encodable* object
   /// - `dateTime`: An AWS-compatible time string. You'll probably want to leave it blank.
+  /// - `encoding`: The payload encoding. if any
+  /// - `signPayload`: If the optional payload should be signed or unsigned
   Request request(
     String path, {
     String method = 'GET',
@@ -150,6 +176,8 @@ class Sigv4Client implements BaseSigv4Client {
     Map<String, dynamic> headers,
     dynamic body,
     String dateTime,
+    String encoding,
+    bool signPayload = true,
   }) {
     /// Converts the path to a canonical path
     path = canonicalUrl(path, query: query);
@@ -163,6 +191,8 @@ class Sigv4Client implements BaseSigv4Client {
       headers: headers,
       body: body,
       dateTime: dateTime,
+      signPayload: signPayload,
+      encoding: encoding,
     ).forEach((k, v) => signed.addAll({k: v}));
 
     /// Adds the signed headers to the request
@@ -195,17 +225,13 @@ class Sigv4Client implements BaseSigv4Client {
     dynamic body,
     String dateTime,
   }) {
-    final canonicalRequest =
-        Sigv4.buildCanonicalRequest(method, path, query, headers, body);
+    final canonicalRequest = Sigv4.buildCanonicalRequest(method, path, query, headers, body);
     final hashedCanonicalRequest = Sigv4.hashCanonicalRequest(canonicalRequest);
-    final credentialScope =
-        Sigv4.buildCredentialScope(dateTime, this.region, this.serviceName);
-    final stringToSign = Sigv4.buildStringToSign(
-        dateTime, credentialScope, hashedCanonicalRequest);
-    final signingKey = Sigv4.calculateSigningKey(
-        this.accessKey, dateTime, this.region, this.serviceName);
+    final credentialScope = Sigv4.buildCredentialScope(dateTime, this.region, this.serviceName);
+    final stringToSign = Sigv4.buildStringToSign(dateTime, credentialScope, hashedCanonicalRequest);
+    final signingKey =
+        Sigv4.calculateSigningKey(this.accessKey, dateTime, this.region, this.serviceName);
     final signature = Sigv4.calculateSignature(signingKey, stringToSign);
-    return Sigv4.buildAuthorizationHeader(
-        this.keyId, credentialScope, headers, signature);
+    return Sigv4.buildAuthorizationHeader(this.keyId, credentialScope, headers, signature);
   }
 }

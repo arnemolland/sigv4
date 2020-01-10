@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.1
+
+- Added `signPayload` and `encoding` parameters to support S3 signed payloads
+
 ## 3.1.0
 
 - `service` and `region` parameters are now required
