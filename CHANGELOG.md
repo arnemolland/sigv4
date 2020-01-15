@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.2
+
+- Fixed incorrect string for non-payload S3 requests ([@jfrsbg](https://github.com/jfrsbg))
+
 ## 3.1.1
 
 - Added `signPayload` and `encoding` parameters to support S3 signed payloads
