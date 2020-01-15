@@ -15,7 +15,7 @@ const _authorization = 'Authorization';
 const _default_content_type = 'application/json';
 const _default_accept_type = 'application/json';
 const _unsigned_payload = 'UNSIGNED-PAYLOAD';
-const _no_payload = 'STREAMING-HMAC-SHA256-PAYLOAD';
+const _no_payload = 'STREAMING-AWS4-HMAC-SHA256-PAYLOAD';
 
 /// A client that stores secrets and configuration for AWS requests
 /// signed with Signature Version 4. Required the following parameters:
