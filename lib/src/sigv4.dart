@@ -30,9 +30,9 @@ class Sigv4 {
 
   /// Signs the given `message` with the given `key` using [HMAC]
   static List<int> sign(List<int> key, String message) {
-    Hmac hmac = Hmac(sha256, key);
-    Digest dig = hmac.convert(utf8.encode(message));
-    return dig.bytes;
+    final hmac = Hmac(sha256, key);
+    final digest = hmac.convert(utf8.encode(message));
+    return digest.bytes;
   }
 
   /// Hex-encodes a SHA256 hash of the given canonical request string, `request`
@@ -55,13 +55,13 @@ class Sigv4 {
       return '';
     }
 
-    final List<String> sortedQuery = [];
+    final sortedQuery = [];
     query.forEach((key, value) {
       sortedQuery.add(key.toString());
     });
     sortedQuery.sort();
 
-    final List<String> canonicalQueryStrings = [];
+    final canonicalQueryStrings = [];
     sortedQuery.forEach((key) {
       canonicalQueryStrings
           .add('$key=${Uri.encodeComponent(query[key].toString())}');
@@ -72,7 +72,7 @@ class Sigv4 {
 
   /// Builds a canonical header string from the given `headers`
   static String buildCanonicalHeaders(Map<String, dynamic> headers) {
-    final List<String> sortedKeys = [];
+    final sortedKeys = [];
     headers.forEach((property, _) {
       sortedKeys.add(property);
     });
@@ -90,7 +90,7 @@ class Sigv4 {
 
   /// Builds a signed canonical header string from the given `headers`
   static String buildCanonicalSignedHeaders(Map<String, dynamic> headers) {
-    final List<String> sortedKeys = [];
+    final sortedKeys = [];
     headers.forEach((property, _) {
       sortedKeys.add(property.toLowerCase());
     });
@@ -119,7 +119,7 @@ class Sigv4 {
     Map<String, dynamic> headers,
     String payload,
   ) {
-    List<String> canonicalRequest = [
+    var canonicalRequest = [
       method,
       buildCanonicalUri(path),
       buildCanonicalQueryString(query),
