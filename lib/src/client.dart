@@ -9,13 +9,12 @@ import 'sigv4.dart';
 const _x_amz_date = 'x-amz-date';
 const _x_amz_security_token = 'x-amz-security-token';
 const _x_amz_content_sha256 = 'x-amz-content-sha256';
-const _x_amz_decoded_content_length = 'x-amz-decoded-content-length';
-const _host = 'host';
+const _host = 'Host';
 const _authorization = 'Authorization';
 const _default_content_type = 'application/json';
 const _default_accept_type = 'application/json';
 const _unsigned_payload = 'UNSIGNED-PAYLOAD';
-const _no_payload = 'STREAMING-AWS4-HMAC-SHA256-PAYLOAD';
+const _chunked_payload = 'STREAMING-AWS4-HMAC-SHA256-PAYLOAD';
 
 /// A client that stores secrets and configuration for AWS requests
 /// signed with Signature Version 4. Required the following parameters:
@@ -79,16 +78,19 @@ class Sigv4Client implements BaseSigv4Client {
     String method = 'GET',
     Map<String, dynamic> query,
     Map<String, dynamic> headers,
-    dynamic body,
+    String body,
     String dateTime,
     String encoding,
     bool signPayload = true,
+    bool chunked = false,
   }) {
     /// Split the URI into segments
     final parsedUri = Uri.parse(path);
 
     /// The endpoint used
-    final endpoint = '${parsedUri.scheme}://${parsedUri.host}';
+    final baseUrl = '${parsedUri.scheme}://${parsedUri.host}';
+
+    path = parsedUri.path;
 
     /// Format the `method` correctly
     method = method.toUpperCase();
@@ -112,16 +114,18 @@ class Sigv4Client implements BaseSigv4Client {
     if (body == null || method == 'GET') {
       body = '';
     } else {
-      body = json.encode(body);
-      headers[_x_amz_content_sha256] =
-          signPayload ? Sigv4.hashPayload(body) : _unsigned_payload;
-      headers[_x_amz_decoded_content_length] =
-          utf8.encode(body).length.toString();
       headers['Content-Length'] = utf8.encode(body).length.toString();
     }
+
+    headers[_x_amz_content_sha256] =
+        signPayload ? Sigv4.hashPayload(body) : _unsigned_payload;
+
     if (body == '') {
       headers.remove('Content-Type');
-      headers[_x_amz_content_sha256] = _no_payload;
+    }
+
+    if (chunked) {
+      headers['Content-Encoding'] = 'aws-chunked';
     }
 
     /// Sets or generate the `dateTime` parameter needed for the signature
@@ -129,17 +133,17 @@ class Sigv4Client implements BaseSigv4Client {
     headers[_x_amz_date] = dateTime;
 
     /// Sets the `host` header
-    final endpointUri = Uri.parse(endpoint);
-    headers[_host] = endpointUri.host;
+    final baseUri = Uri.parse(baseUrl);
+    headers[_host] = baseUri.host;
 
     if (headers.containsKey('Transfer-Encoding') &&
         headers['Transfer-Encoding'] != 'identity') {
-      headers.remove('Content-Length');
+      //headers.remove('Content-Length');
     }
 
     if (headers.containsKey('Content-Encoding') &&
         headers['Content-Encoding'] == 'aws-chunked') {
-      // TODO: Support chunks
+      headers[_x_amz_content_sha256] = _chunked_payload;
     }
 
     /// Generates the `Authorization` headers
@@ -178,7 +182,7 @@ class Sigv4Client implements BaseSigv4Client {
     String method = 'GET',
     Map<String, dynamic> query,
     Map<String, dynamic> headers,
-    dynamic body,
+    String body,
     String dateTime,
     String encoding,
     bool signPayload = true,
@@ -186,9 +190,8 @@ class Sigv4Client implements BaseSigv4Client {
     /// Converts the path to a canonical path
     path = canonicalUrl(path, query: query);
     var request = Request(method, Uri.parse(path));
-    var signed = <String, String>{};
 
-    signedHeaders(
+    final signed = signedHeaders(
       path,
       method: method,
       query: query,
@@ -197,14 +200,14 @@ class Sigv4Client implements BaseSigv4Client {
       dateTime: dateTime,
       signPayload: signPayload,
       encoding: encoding,
-    ).forEach((k, v) => signed.addAll({k.toString(): v.toString()}));
+    );
 
     /// Adds the signed headers to the request
     request.headers.addAll(signed);
 
     /// Adds the body to the request
     if (body != null) {
-      request.body = jsonEncode(body);
+      request.body = body;
     }
 
     return request;
@@ -226,12 +229,12 @@ class Sigv4Client implements BaseSigv4Client {
     String path,
     Map<String, dynamic> query,
     Map<String, dynamic> headers,
-    dynamic body,
+    String body,
     String dateTime,
   }) {
     final canonicalRequest =
         Sigv4.buildCanonicalRequest(method, path, query, headers, body);
-    final hashedCanonicalRequest = Sigv4.hashCanonicalRequest(canonicalRequest);
+    final hashedCanonicalRequest = Sigv4.hashPayload(canonicalRequest);
     final credentialScope =
         Sigv4.buildCredentialScope(dateTime, region, serviceName);
     final stringToSign = Sigv4.buildStringToSign(

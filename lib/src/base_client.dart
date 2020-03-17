@@ -6,7 +6,7 @@ abstract class BaseSigv4Client {
     String method,
     Map<String, dynamic> query,
     Map<String, dynamic> headers,
-    dynamic body,
+    String body,
     String dateTime,
   });
 
@@ -15,7 +15,7 @@ abstract class BaseSigv4Client {
     String method,
     Map<String, dynamic> query,
     Map<String, dynamic> headers,
-    dynamic body,
+    String body,
     String dateTime,
   });
 
