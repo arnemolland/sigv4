@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:http/http.dart';
 import 'package:sigv4/sigv4.dart';
@@ -9,7 +11,7 @@ void main() {
   final client = Sigv4Client(
     keyId: 'your_access_key_id',
     accessKey: 'your_access_key',
-    region: 'eu-west-1',
+    region: 'eu-north-1',
     serviceName: 'execute-api',
   );
 
@@ -28,11 +30,15 @@ void main() {
     method: 'POST',
     query: {'key': 'value'},
     headers: {'header': 'value'},
-    body: {'content': 'some-content'},
+    body: json.encode({'content': 'some-content'}),
   );
 
   // POST request
-  post(largeRequest.url, headers: largeRequest.headers, body: largeRequest.body);
+  post(
+    largeRequest.url,
+    headers: largeRequest.headers,
+    body: largeRequest.body,
+  );
 
   final query = {'key': 'value'};
 

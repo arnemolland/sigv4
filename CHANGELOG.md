@@ -1,5 +1,13 @@
 # Changelog
 
+## 4.0.0
+
+- Fixed invalid tyes in signed headers
+
+### **BREAKING CHANGES:**
+
+- `body` is now a `String` value for both `request()` and `signedHeaders()` in `Sigv4Client`
+
 ## 3.1.2
 
 - Fixed incorrect string for non-payload S3 requests ([@jfrsbg](https://github.com/jfrsbg))
