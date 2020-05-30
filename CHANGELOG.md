@@ -1,8 +1,9 @@
 # Changelog
 
-## 4.0.0+1
+## 4.1.0
 
-- Fix content-length being set to incorrect value
+- Remove content-length from request-to-sign. This may have unintended side-effects for some AWS APIs, which is why the minor version is bumped.
+- Bump dependencies
 
 ## 4.0.0
 
