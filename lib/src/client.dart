@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:meta/meta.dart';
 import 'package:http/http.dart';
 
@@ -113,8 +111,6 @@ class Sigv4Client implements BaseSigv4Client {
     /// Set the `body`, if any
     if (body == null || method == 'GET') {
       body = '';
-    } else {
-      headers['Content-Length'] = utf8.encode(body).length.toString();
     }
 
     headers[_x_amz_content_sha256] =
@@ -135,11 +131,6 @@ class Sigv4Client implements BaseSigv4Client {
     /// Sets the `host` header
     final baseUri = Uri.parse(baseUrl);
     headers[_host] = baseUri.host;
-
-    if (headers.containsKey('Transfer-Encoding') &&
-        headers['Transfer-Encoding'] != 'identity') {
-      //headers.remove('Content-Length');
-    }
 
     if (headers.containsKey('Content-Encoding') &&
         headers['Content-Encoding'] == 'aws-chunked') {

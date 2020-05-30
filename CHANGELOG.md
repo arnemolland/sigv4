@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.0.0+1
+
+- Fix content-length being set to incorrect value
+
 ## 4.0.0
 
 - Fixed invalid tyes in signed headers
