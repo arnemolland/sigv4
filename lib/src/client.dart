@@ -117,8 +117,9 @@ class Sigv4Client implements BaseSigv4Client {
       body = '';
     }
 
-    headers[_x_amz_content_sha256] =
-        signPayload ? Sigv4.hashPayload(body) : _unsigned_payload;
+    if (signPayload) {
+      headers[_x_amz_content_sha256] = signPayload;
+    }
 
     if (body == '') {
       headers.remove('Content-Type');

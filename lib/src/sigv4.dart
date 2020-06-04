@@ -139,9 +139,9 @@ class Sigv4 {
         accessKey +
         '/' +
         credentialScope +
-        ',SignedHeaders=' +
+        ', SignedHeaders=' +
         buildCanonicalSignedHeaders(headers) +
-        ',Signature=' +
+        ', Signature=' +
         signature;
   }
 
