@@ -4,6 +4,7 @@
 
 A Dart library for signing AWS requests with Signature Version 4.
 
+This is not actively maintained. If you're looking for alternatives, check out [aws_client](https://github.com/agilord/aws_client). If you'd like to continue using this library and have a fix for an issue, I'll be happy to review PRs.
 ## Usage
 
 Create a `Sigv4Client`. This will hold your secrets and configuration. Some omitted default values:
