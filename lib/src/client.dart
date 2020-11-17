@@ -9,7 +9,7 @@ const _x_amz_security_token = 'x-amz-security-token';
 const _x_amz_content_sha256 = 'x-amz-content-sha256';
 const _host = 'Host';
 const _authorization = 'Authorization';
-const _default_content_type = 'application/json';
+const _default_content_type = 'application/json; charset=utf-8';
 const _default_accept_type = 'application/json';
 const _unsigned_payload = 'UNSIGNED-PAYLOAD';
 const _chunked_payload = 'STREAMING-AWS4-HMAC-SHA256-PAYLOAD';
