@@ -1,5 +1,13 @@
 # Changelog
 
+## 4.1.2
+
+- Throw when signing with empty path/urls
+
+## 4.1.1
+
+- Fix invalid signature caused by http package ([@edlea](https://github.com/edlea))
+
 ## 4.1.0
 
 - Remove content-length from request-to-sign. This may have unintended side-effects for some AWS APIs, which is why the minor version is bumped.
