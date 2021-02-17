@@ -82,6 +82,10 @@ class Sigv4Client implements BaseSigv4Client {
     bool signPayload = true,
     bool chunked = false,
   }) {
+    if (path.isEmpty) {
+      throw AssertionError('path is empty');
+    }
+
     /// Split the URI into segments
     final parsedUri = Uri.parse(path);
 

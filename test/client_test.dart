@@ -32,5 +32,13 @@ void main() {
       when(client.signedHeaders('path')).thenAnswer((_) => headers);
       expect(client.signedHeaders('path'), headers);
     });
+
+    test('throws on null/empty path', () {
+      try {
+        client.signedHeaders('');
+      } on AssertionError catch (e) {
+        expect(e.runtimeType, AssertionError);
+      }
+    });
   });
 }
