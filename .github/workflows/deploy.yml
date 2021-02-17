@@ -1,0 +1,38 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    container:
+      image:  google/dart:latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install dependencies
+      run: pub get
+    - name: Analyze
+      run: dart analyze
+    - name: Run tests
+      run: dart test
+    - name: Setup credentials
+      run: |
+        mkdir -p ~/.pub-cache 
+        cat <<EOF > ~/.pub-cache/credentials.json
+        {
+          "accessToken":"${{ secrets.PUB_OAUTH_ACCESS_TOKEN }}",
+          "refreshToken":"${{ secrets.PUB_OAUTH_REFRESH_TOKEN }}",
+          "tokenEndpoint":"https://accounts.google.com/o/oauth2/token",
+          "scopes": [ "openid", "https://www.googleapis.com/auth/userinfo.email" ],
+          "expiration": 1613554595622
+        }
+        EOF
+    - name: Publish packages
+      continue-on-error: true
+      run: pub publish -f
