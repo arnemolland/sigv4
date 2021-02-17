@@ -1,13 +1,9 @@
-name: Deploy
+name: Build & Deploy
 
-on:
-  push:
-    branches:
-      - master
+on: [push]
 
 jobs:
-  build:
-
+  ci:
     runs-on: ubuntu-latest
 
     container:
@@ -22,6 +18,7 @@ jobs:
     - name: Run tests
       run: dart test
     - name: Setup credentials
+      if: github.ref == 'refs/heads/master'
       run: |
         mkdir -p ~/.pub-cache 
         cat <<EOF > ~/.pub-cache/credentials.json
@@ -34,5 +31,6 @@ jobs:
         }
         EOF
     - name: Publish packages
+      if: github.ref == 'refs/heads/master'
       continue-on-error: true
       run: pub publish -f
