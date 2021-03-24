@@ -7,7 +7,7 @@ class MockSigv4Client extends Mock implements Sigv4Client {}
 
 void main() {
   group('#baseClient', () {
-    MockSigv4Client client;
+    late MockSigv4Client client;
 
     setUp(() {
       client = MockSigv4Client();
@@ -16,7 +16,7 @@ void main() {
     // Stub
     test('returns headers', () {
       final request = Request('GET', Uri.parse('path'));
-      when(client.request('path')).thenAnswer((_) => request);
+      when(client.request('path')).thenReturn(request);
       expect(client.request('path'), request);
     });
 

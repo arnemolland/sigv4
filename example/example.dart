@@ -49,7 +49,7 @@ void main() {
   );
 
   // GET request
-  get(url, headers: headers);
+  get(Uri.parse(url), headers: headers);
 
   // Extensions on `http` Request objects
   Request('GET', Uri.parse(path)).sign(client);

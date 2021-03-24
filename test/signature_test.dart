@@ -3,8 +3,8 @@ import 'package:test/test.dart';
 
 void main() {
   group('#signatures', () {
-    Map<String, dynamic> query;
-    Map<String, dynamic> headers;
+    late Map<String, dynamic> query;
+    late Map<String, dynamic> headers;
 
     setUp(() {
       query = {'key': 'value', 'number': 123};

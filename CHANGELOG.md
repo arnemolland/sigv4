@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.0.0
+
+### **BREAKING CHANGES:**
+
+- Drop Chopper support until null-safe
+
+- Migrate to null-safety ([@pflugs30](https://github.com/pflugs30))
+
 ## 4.1.3
 
 - Fix invalid value type ([@BartusZak](https://github.com/BartusZak))

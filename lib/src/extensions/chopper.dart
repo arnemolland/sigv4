@@ -1,4 +1,6 @@
-import 'package:chopper/chopper.dart';
+
+// TODO: Re-enable Chopper once null-safe
+/*import 'package:chopper/chopper.dart';
 import 'package:sigv4/sigv4.dart';
 
 extension ChopperExtension on Request {
@@ -13,4 +15,4 @@ extension ChopperExtension on Request {
     headers.addAll(signed);
     return this;
   }
-}
+}*/
