@@ -46,7 +46,7 @@ class Sigv4 {
   }
 
   /// Builds a canonical query string from the given `query` parameters
-  static String buildCanonicalQueryString(Map<String, dynamic> query) {
+  static String buildCanonicalQueryString(Map<String, dynamic>? query) {
     if (query == null) {
       return '';
     }
@@ -110,9 +110,9 @@ class Sigv4 {
 
   /// Builds a canonical string containing a complete request
   static String buildCanonicalRequest(
-    String method,
+    String? method,
     String path,
-    Map<String, dynamic> query,
+    Map<String, dynamic>? query,
     Map<String, dynamic> headers,
     String payload,
   ) {

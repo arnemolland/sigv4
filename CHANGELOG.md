@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.0.0-nullsafety.0
+
+### **BREAKING CHANGES:**
+
+- Drop Chopper support until null-safe
+
+- Migrate to null-safety
+
 ## 4.1.2
 
 - Throw when signing with empty path/urls

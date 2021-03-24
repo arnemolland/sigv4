@@ -29,7 +29,7 @@ class Sigv4Client implements BaseSigv4Client {
   String accessKey;
 
   /// An optional session token
-  String sessionToken;
+  String? sessionToken;
 
   /// The name of the service to be called.
   /// E.g. `s3`, `execute-api` etc.
@@ -44,20 +44,19 @@ class Sigv4Client implements BaseSigv4Client {
   String defaultAcceptType;
 
   Sigv4Client({
-    @required this.keyId,
-    @required this.accessKey,
-    @required this.serviceName,
-    @required this.region,
+    required this.keyId,
+    required this.accessKey,
+    required this.serviceName,
+    required this.region,
     this.sessionToken,
     this.defaultContentType = _default_content_type,
     this.defaultAcceptType = _default_accept_type,
-  })  : assert(keyId != null),
-        assert(accessKey != null);
+  });
 
   /// Returns the path with encoded, canonical query parameters.
   /// This is __required__ by AWS.
   @override
-  String canonicalUrl(String path, {Map<String, dynamic> query}) {
+  String canonicalUrl(String path, {Map<String, dynamic>? query}) {
     return _generateUrl(path, query: query);
   }
 
@@ -73,12 +72,12 @@ class Sigv4Client implements BaseSigv4Client {
   @override
   Map<String, String> signedHeaders(
     String path, {
-    String method = 'GET',
-    Map<String, dynamic> query,
-    Map<String, dynamic> headers,
-    String body,
-    String dateTime,
-    String encoding,
+    String? method = 'GET',
+    Map<String, dynamic>? query,
+    Map<String, dynamic>? headers,
+    String? body,
+    String? dateTime,
+    String? encoding,
     bool signPayload = true,
     bool chunked = false,
   }) {
@@ -95,7 +94,7 @@ class Sigv4Client implements BaseSigv4Client {
     path = parsedUri.path;
 
     /// Format the `method` correctly
-    method = method.toUpperCase();
+    method = method!.toUpperCase();
     headers ??= {};
 
     if (encoding != null) {
@@ -175,17 +174,17 @@ class Sigv4Client implements BaseSigv4Client {
   @override
   Request request(
     String path, {
-    String method = 'GET',
-    Map<String, dynamic> query,
-    Map<String, dynamic> headers,
-    String body,
-    String dateTime,
-    String encoding,
+    String? method = 'GET',
+    Map<String, dynamic>? query,
+    Map<String, dynamic>? headers,
+    String? body,
+    String? dateTime,
+    String? encoding,
     bool signPayload = true,
   }) {
     /// Converts the path to a canonical path
     path = canonicalUrl(path, query: query);
-    var request = Request(method, Uri.parse(path));
+    var request = Request(method!, Uri.parse(path));
 
     final signed = signedHeaders(
       path,
@@ -209,7 +208,7 @@ class Sigv4Client implements BaseSigv4Client {
     return request;
   }
 
-  String _generateUrl(String path, {Map<String, dynamic> query}) {
+  String _generateUrl(String path, {Map<String, dynamic>? query}) {
     var url = '$path';
     if (query != null) {
       final queryString = Sigv4.buildCanonicalQueryString(query);
@@ -221,12 +220,12 @@ class Sigv4Client implements BaseSigv4Client {
   }
 
   String _generateAuthorization({
-    String method,
-    String path,
-    Map<String, dynamic> query,
-    Map<String, dynamic> headers,
-    String body,
-    String dateTime,
+    String? method,
+    required String path,
+    Map<String, dynamic>? query,
+    required Map<String, dynamic> headers,
+    required String body,
+    required String dateTime,
   }) {
     final canonicalRequest =
         Sigv4.buildCanonicalRequest(method, path, query, headers, body);
