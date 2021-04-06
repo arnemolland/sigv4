@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.1.3
+
+- Fix invalid value type ([@BartusZak](https://github.com/BartusZak))
+
 ## 4.1.2
 
 - Throw when signing with empty path/urls
