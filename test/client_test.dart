@@ -1,10 +1,13 @@
 import 'package:http/http.dart';
+import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:sigv4/sigv4.dart';
 
-class MockSigv4Client extends Mock implements Sigv4Client {}
+import 'client_test.mocks.dart';
 
+// For an explanation on this method of generating stubs, see https://github.com/dart-lang/mockito/blob/master/NULL_SAFETY_README.md
+@GenerateMocks([Sigv4Client])
 void main() {
   group('#baseClient', () {
     late MockSigv4Client client;
@@ -35,7 +38,12 @@ void main() {
 
     test('throws on null/empty path', () {
       try {
-        client.signedHeaders('');
+        var client2 = Sigv4Client(
+            keyId: 'keyId',
+            accessKey: 'accessKey',
+            serviceName: 'serviceName',
+            region: 'region');
+        client2.signedHeaders('');
       } on AssertionError catch (e) {
         expect(e.runtimeType, AssertionError);
       }
