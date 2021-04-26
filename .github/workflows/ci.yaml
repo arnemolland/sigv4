@@ -14,9 +14,9 @@ jobs:
     - name: Install dependencies
       run: pub get
     - name: Analyze
-      run: dart analyze
+      run: dart analyze lib
     - name: Run tests
-      run: dart test
+      run: dart run build_runner build && dart test
     - name: Setup credentials
       if: github.ref == 'refs/heads/master'
       run: |
