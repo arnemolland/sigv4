@@ -38,12 +38,12 @@ void main() {
 
     test('throws on null/empty path', () {
       try {
-        var client2 = Sigv4Client(
+        var instance = Sigv4Client(
             keyId: 'keyId',
             accessKey: 'accessKey',
             serviceName: 'serviceName',
             region: 'region');
-        client2.signedHeaders('');
+        instance.signedHeaders('');
       } on AssertionError catch (e) {
         expect(e.runtimeType, AssertionError);
       }
