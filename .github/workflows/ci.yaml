@@ -1,6 +1,10 @@
 name: Build & Deploy
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
+      - 'null-safety'
 
 jobs:
   ci:
@@ -18,7 +22,6 @@ jobs:
     - name: Run tests
       run: dart run build_runner build && dart test
     - name: Setup credentials
-      if: github.ref == 'refs/heads/master'
       run: |
         mkdir -p ~/.pub-cache 
         cat <<EOF > ~/.pub-cache/credentials.json
@@ -31,6 +34,5 @@ jobs:
         }
         EOF
     - name: Publish packages
-      if: github.ref == 'refs/heads/master'
       continue-on-error: true
       run: pub publish -f
