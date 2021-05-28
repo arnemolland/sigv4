@@ -2,7 +2,7 @@ name: sigv4
 description: Library for signing AWS requests with Signature Version 4, with both convenience wrappers/classes and cryptography methods
 homepage: https://github.com/arnemolland/sigv4
 
-version: 5.0.1-nullsafety.0
+version: 5.0.1-nullsafety.1
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
