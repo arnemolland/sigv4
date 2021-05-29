@@ -3,7 +3,7 @@ name: Build & Deploy
 on: [push]
 
 jobs:
-  ci:
+  test:
     runs-on: ubuntu-latest
     container:
       image:  google/dart:latest
@@ -15,18 +15,25 @@ jobs:
       run: dart analyze lib
     - name: Run tests
       run: dart test
-    - name: Setup credentials
-      run: |
-        mkdir -p ~/.pub-cache 
-        cat <<EOF > ~/.pub-cache/credentials.json
-        {
-          "accessToken":"${{ secrets.PUB_OAUTH_ACCESS_TOKEN }}",
-          "refreshToken":"${{ secrets.PUB_OAUTH_REFRESH_TOKEN }}",
-          "tokenEndpoint":"https://accounts.google.com/o/oauth2/token",
-          "scopes": [ "openid", "https://www.googleapis.com/auth/userinfo.email" ],
-          "expiration": 1613554595622
-        }
-        EOF
-    - name: Publish packages
-      continue-on-error: true
-      run: pub publish -f
+
+  deploy:
+    needs: [test]
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    container:
+      image:  google/dart:latest
+    steps:
+      - name: Setup credentials
+        run: |
+          mkdir -p ~/.pub-cache 
+          cat <<EOF > ~/.pub-cache/credentials.json
+          {
+            "accessToken":"${{ secrets.PUB_OAUTH_ACCESS_TOKEN }}",
+            "refreshToken":"${{ secrets.PUB_OAUTH_REFRESH_TOKEN }}",
+            "tokenEndpoint":"https://accounts.google.com/o/oauth2/token",
+            "scopes": [ "openid", "https://www.googleapis.com/auth/userinfo.email" ],
+            "expiration": 1613554595622
+          }
+          EOF
+      - name: Publish packages
+        run: pub publish -f
