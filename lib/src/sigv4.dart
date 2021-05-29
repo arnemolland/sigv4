@@ -99,7 +99,7 @@ class Sigv4 {
     String credentialScope,
     String hashedCanonicalRequest,
   ) {
-    return '$_aws_sha_256\n${datetime}\n$credentialScope\n$hashedCanonicalRequest';
+    return '$_aws_sha_256\n$datetime\n$credentialScope\n$hashedCanonicalRequest';
   }
 
   /// Builds the required credential scope

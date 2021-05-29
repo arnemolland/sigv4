@@ -42,14 +42,14 @@ void main() {
 
   final query = {'key': 'value'};
 
-  final url = client.canonicalUrl(path, query: query);
+  final url = Uri.parse(client.canonicalUrl(path, query: query));
   final headers = client.signedHeaders(
     path,
     query: query,
   );
 
   // GET request
-  get(Uri.parse(url), headers: headers);
+  get(url, headers: headers);
 
   // Extensions on `http` Request objects
   Request('GET', Uri.parse(path)).sign(client);

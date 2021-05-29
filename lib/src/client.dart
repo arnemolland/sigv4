@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import 'package:http/http.dart';
 
 import 'base_client.dart';
@@ -11,7 +10,6 @@ const _host = 'Host';
 const _authorization = 'Authorization';
 const _default_content_type = 'application/json; charset=utf-8';
 const _default_accept_type = 'application/json';
-const _unsigned_payload = 'UNSIGNED-PAYLOAD';
 const _chunked_payload = 'STREAMING-AWS4-HMAC-SHA256-PAYLOAD';
 
 /// A client that stores secrets and configuration for AWS requests

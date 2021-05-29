@@ -31,6 +31,3 @@
 .pub/
 build/
 sandbox/
-
-# generated classes
-client_test.mocks.dart
